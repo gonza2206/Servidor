@@ -1,0 +1,40 @@
+INSTALAR MOSCA SIN ERRORES DE SCHEMA 
+ npm install mqtt jsonschema@1.2.6 mosca
+
+ HACER TYPESCRIPT UN PROYECTO JS 
+ npm install -g typescript
+
+
+ Para iniciar la aplicacion del servidor primero usar el comando npm init --y 
+Esto crea un package.json 
+Para no tener que estar poniendo que el archivo index.js se ejecute en la terminal. Instalar nodemon con npm i -E -D nodemon 
+nodemon ejecuta constantemente el script en el que trabajas
+
+Instalar express npm i -E express
+
+POST sirve para enviar informacion al servidor (como crear un ususario) 
+PUT tambien sirve para mandar informacion pero este REEMPLAZA el dato. Es decir si creo un usuario que ya existe este lo reemplaza. 
+
+Entry point es la URL que el visitante habrá ingresado en su navegador para ver su aplicación o sitio.
+Los endpoints son las URLs de un API o un backend que responden a una petición. Los mismos entrypoints tienen 
+que calzar con un endpoint para existir. Algo debe responder para que se renderice un sitio con sentido para el visitante. Por cada entrypoint esperando la visita de un usuario puede 
+haber docenas de endpoints sirviendo los datos para llenar cada gráfico e infografía que se despliega en el entrypoint.
+
+La diferencia entre entrypoint y endpoint es que los endpoints no están pensados para interactuar con el usuario final.
+
+PARA CORRER LA APLICACION npm run dev
+
+PARA PODER USAR VALORES DE VARIABLES GLOBALES ENTRE ARCHIVOS (parecido a un #define) instalar dotend como npm i dotenv
+
+una vez instalado poner dotenv.condifg(); y me va a detectar el archivo .env que tenga.
+
+PARA CONECTARSE A LA BASE DE DATOS 
+1) instalar : npm i -E mongoose
+2) crear la base de datos en mongoDB 
+3)obtener la URL yendo a conect connect your aplication.
+4)Copiar la URL y poner la contraseña en <password> (sin los <>) 
+
+PARA INSTALAR MQTT
+npm install mqtt
+
+
