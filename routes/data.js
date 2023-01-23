@@ -2,7 +2,8 @@ import bodyParser from "body-parser";
 import { parse } from "dotenv";
 import { Router } from "express";
 import dataModel from "../schema/data-schema.js";
-
+var aux1=0, aux2=0, max = 0.0;
+let count = 0;
 const dataRouter = Router();
 
 dataRouter.use((req, res, next) => {
@@ -59,8 +60,9 @@ export default dataRouter;
  */
 const findInDataBase = (res, req, month, option) => {
   if (option === 'all') {
-    
+
     dataModel.find({
+
       $and:
         [
           { date: { $gte: req.query.StartDate } },
@@ -68,6 +70,19 @@ const findInDataBase = (res, req, month, option) => {
         ]
     },
       (err, measurements) => {
+        measurements.forEach(dato => {
+          
+          aux1 = parseFloat(dato.meassure.split(',')[2]);
+          aux2+=aux1;
+          count++;
+          if (aux1 >= max) {
+            max = aux1;
+          }
+        });
+        let average = aux2/count;
+        measurements.push(max);
+        measurements.push(average);
+        console.log('average', average);
         res.send(measurements);
       }
     );
