@@ -35,11 +35,11 @@ dataRouter.get("/", async (req, res) => {
     //"2023-1-3-16-24-25"
     let month = req.query.Month;
     if (month === '0') {
-      console.log(`Month: ${req.query.Month}`);
+      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n`);
       findInDataBase(res, req, month, 'all');
 
     } else {
-      console.log(`Month: ${req.query.Month}`);
+      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n`);
       findInDataBase(res, req, month, 'month');
     }
 
@@ -59,6 +59,11 @@ export default dataRouter;
  * * 'month' Look for information in a specific month
  */
 const findInDataBase = (res, req, month, option) => {
+  let response = {
+    meassure: [],
+    max: 0,
+    average: 0,
+  };
   if (option === 'all') {
 
     dataModel.find({
@@ -80,10 +85,10 @@ const findInDataBase = (res, req, month, option) => {
           }
         });
         let average = aux2/count;
-        measurements.push(max);
-        measurements.push(average);
-        console.log('average', average);
-        res.send(measurements);
+        response.meassure = measurements;
+        response.max = max;
+        response.average = average;
+        res.send(response);
       }
     );
   }
