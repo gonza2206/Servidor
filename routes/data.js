@@ -2,7 +2,7 @@ import bodyParser from "body-parser";
 import { parse } from "dotenv";
 import { Router } from "express";
 import dataModel from "../schema/data-schema.js";
-var aux1=0, aux2=0, max = 0.0, sum=0, sum2=0, sum3=0, sum4=0, sum5=0, sum6=0, sum7=0, sumThd=0, sumEkwh=0;
+var aux1 = 0, aux2 = 0, max = 0.0, sum = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sumThd = 0, sumEkwh = 0;
 let count = 0;
 const dataRouter = Router();
 
@@ -39,7 +39,7 @@ dataRouter.get("/", async (req, res) => {
       findInDataBase(res, req, month, 'all');
 
     } else {
-      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n`);
+      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n Else`);
       findInDataBase(res, req, month, 'month');
     }
 
@@ -76,71 +76,36 @@ const findInDataBase = (res, req, month, option) => {
         ]
     },
       (err, measurements) => {
-        measurements.forEach(dato => {
-          getMaxValue(dato);  
-        });
-        let average = aux2/count;
-        let averageHarmonic = sum/count;
-        let averageHarmonic2 = sum2/count;
-        let averageHarmonic3 = sum3/count;
-        let averageHarmonic4 = sum4/count;
-        let averageHarmonic5 = sum5/count;
-        let averageHarmonic6 = sum6/count;
-        let averageHarmonic7 = sum7/count;
-        let averageThd = sumThd/count;
-        let averageEkwh = sumEkwh/count;
-        
-        sum=0;
-        sum2=0;
-        sum3=0;
-        sum4=0;
-        sum5=0;
-        sum6=0;
-        sum7=0;
-        sumThd=0;
-        sumEkwh=0;
-        count=0;
-        aux2=0;
-        response.meassure = measurements;
-        response.max = max;
-        response.average = average;
-        response.harmonics.push(averageHarmonic);
-        response.harmonics.push(averageHarmonic2);
-        response.harmonics.push(averageHarmonic3);
-        response.harmonics.push(averageHarmonic4);
-        response.harmonics.push(averageHarmonic5);
-        response.harmonics.push(averageHarmonic6);
-        response.harmonics.push(averageHarmonic7);
-        response.harmonics.push(averageThd);
-        response.harmonics.push(averageEkwh);
+        response = getResponse(measurements, response);
         res.send(response);
       }
     );
   }
   else if (option === 'month') {
-    //console.log(month);
+    let maxDay = setMaxDay(month);
     dataModel.find({
       $and:
         [
-          { date: { $gte: `2023-1-3-0-0-0` } },
-          { date: { $lte: `2023-1-4-0-0-0` } }
+          { date: { $gte: `2023-${month}-1-0-0-0` } },
+          { date: { $lte: `2023-${month}-${maxDay}-0-0-0` } }
         ]
     },
       (err, measurements) => {
-        res.send(measurements);
+        response = getResponse(measurements, response);
+        res.send(response);
       }
     );
   }
 }
 
-const getMaxValue = (dato)=>{
+const getMaxValue = (dato) => {
   aux1 = parseFloat(dato.meassure.split(',')[2]);
-  aux2+=aux1;
+  aux2 += aux1;
   count++;
   let harmonic1 = parseFloat(dato.meassure.split(',')[5]);
-  sum += harmonic1; 
+  sum += harmonic1;
   let harmonic2 = parseFloat(dato.meassure.split(',')[6]);
-  sum2 += harmonic2; 
+  sum2 += harmonic2;
   let harmonic3 = parseFloat(dato.meassure.split(',')[7]);
   sum3 += harmonic3;
   let harmonic4 = parseFloat(dato.meassure.split(',')[8]);
@@ -160,3 +125,58 @@ const getMaxValue = (dato)=>{
   }
 }
 
+const getResponse = (measurements, response) => {
+  measurements.forEach(dato => {
+    getMaxValue(dato);
+  });
+  let average = aux2 / count;
+  let averageHarmonic = sum / count;
+  let averageHarmonic2 = sum2 / count;
+  let averageHarmonic3 = sum3 / count;
+  let averageHarmonic4 = sum4 / count;
+  let averageHarmonic5 = sum5 / count;
+  let averageHarmonic6 = sum6 / count;
+  let averageHarmonic7 = sum7 / count;
+  let averageThd = sumThd / count;
+  let averageEkwh = sumEkwh / count;
+
+  sum = 0;
+  sum2 = 0;
+  sum3 = 0;
+  sum4 = 0;
+  sum5 = 0;
+  sum6 = 0;
+  sum7 = 0;
+  sumThd = 0;
+  sumEkwh = 0;
+  count = 0;
+  aux2 = 0;
+  response.meassure = measurements;
+  response.max = max;
+  response.average = average;
+  response.harmonics.push(averageHarmonic);
+  response.harmonics.push(averageHarmonic2);
+  response.harmonics.push(averageHarmonic3);
+  response.harmonics.push(averageHarmonic4);
+  response.harmonics.push(averageHarmonic5);
+  response.harmonics.push(averageHarmonic6);
+  response.harmonics.push(averageHarmonic7);
+  response.harmonics.push(averageThd);
+  response.harmonics.push(averageEkwh);
+  return (response);
+}
+
+const setMaxDay = (month) => {
+  if(month===1||month===3||month===4||month===6||month===7||month===8||month===10||month===3||month===12)
+  {
+   
+    return(31);
+  }
+  if(month===2)
+  {
+    return(28)
+  }
+  else{
+    return(30);
+  }
+}
