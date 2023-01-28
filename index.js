@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from 'mongoose';
 import datatRouter from "./routes/data.js";
-
+import cors from 'cors';
 //MQTT SERVER
 
 var settings = { port: 1234 };
@@ -12,13 +12,14 @@ var broker = new mosca.Server(settings);
 
 broker.on('ready', () => {
     console.log('Broker ready on port 1234');
-    
-    
+
+
 });
 
 broker.on('published', (packet) => {
     console.log(packet.payload.toString());
 });
+
 
 //HTTP SERVER
 
@@ -26,7 +27,11 @@ dotenv.config();
 
 const PORT = process.env.PORT;
 const expressApp = express();
-
+expressApp.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 expressApp.use(express.json());
 expressApp.use(express.text());
 

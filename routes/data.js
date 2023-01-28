@@ -2,12 +2,15 @@ import bodyParser from "body-parser";
 import { parse } from "dotenv";
 import { Router } from "express";
 import dataModel from "../schema/data-schema.js";
+import { convertToISO } from "../utils/ISODate.js";
+
 var aux1 = 0, aux2 = 0, max = 0.0, sum = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sumThd = 0, sumEkwh = 0;
 let count = 0;
 const dataRouter = Router();
 
 dataRouter.use((req, res, next) => {
   console.log(req.ip); //Me devuelve la ip del que hace la solicitud
+  
   next(); //funcion necesaria para indicar que se ejecute la siguiente funcion. Osea el endpoint segun si hicimos un get, post , etc
 });
 
@@ -39,7 +42,7 @@ dataRouter.get("/", async (req, res) => {
       findInDataBase(res, req, month, 'all');
 
     } else {
-      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n Else`);
+      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n `);
       findInDataBase(res, req, month, 'month');
     }
 
@@ -65,14 +68,17 @@ const findInDataBase = (res, req, month, option) => {
     average: 0,
     harmonics: []
   };
+  const startDate = convertToISO(req.query.StartDate)//new Date( req.query.StartDate);
+  const endDate = convertToISO(req.query.EndDate)//new Date(req.query.EndDate);
   if (option === 'all') {
 
     dataModel.find({
 
+      //startDate: {$gte: startDate}, endDate: {$lte: endDate}
       $and:
         [
-          { date: { $gte: req.query.StartDate } },
-          { date: { $lte: req.query.EndDate } }
+          { date: { $gte: startDate } },
+          { date: { $lte: endDate } }
         ]
     },
       (err, measurements) => {
@@ -86,8 +92,8 @@ const findInDataBase = (res, req, month, option) => {
     dataModel.find({
       $and:
         [
-          { date: { $gte: `2023-${month}-1-0-0-0` } },
-          { date: { $lte: `2023-${month}-${maxDay}-0-0-0` } }
+          { date: { $gte: convertToISO(`2023-${month}-1-0-0-0`) } },
+          { date: { $lte: convertToISO(`2023-${month}-${maxDay}-0-0-0`) } }
         ]
     },
       (err, measurements) => {
