@@ -13,10 +13,11 @@ client.on('message', (topic, message) => {//cuando recibo un mensaje lo parsep a
     message = message.toString();
     if (message.startsWith("INIT")) {
         console.log("New device connected.");
-        parseFrame(message);
     }
     else {
         console.warn("Device not recongnized");
+        parseFrame(message);
+        console.log(message);
     }
 });
 
@@ -34,14 +35,17 @@ const postData = async (meassure, date) => {
 const parseFrame = (message) => {
 
     let meassure = message.split(',');
-    meassure[16] = '-' + meassure[16];
-    let date = meassure[15].concat(meassure[16]);
-    date = convertToISO(date);
+    meassure.forEach((element,index) => {
+        console.log(`${index}: ${element}`);
+    });
+   // meassure[16] = '-' + meassure[16];
+    //let date = meassure[15].concat(meassure[16]);
+    //date = convertToISO(date);
     //Elimino los ultimos elementos del array, los cuales contienen la fecha. 
     meassure.pop();
     meassure.pop();
     let measurmentToString = meassure.toString();
-    postData(measurmentToString, date);
+    //postData(measurmentToString, date);
 }
 //r,250.00,21.99,22.42,1.02,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,5.50,13.01,2023-1-3,12-33-59
 
