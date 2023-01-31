@@ -2,6 +2,7 @@ import bodyParser from "body-parser";
 import { parse } from "dotenv";
 import { Router } from "express";
 import dataModel from "../schema/data-schema.js";
+import secondFloorModel from "../schema/secondSchema.js"
 import { convertToISO } from "../utils/ISODate.js";
 
 var aux1 = 0, aux2 = 0, max = 0.0, sum = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sumThd = 0, sumEkwh = 0;
@@ -10,7 +11,7 @@ const dataRouter = Router();
 
 dataRouter.use((req, res, next) => {
   console.log(req.ip); //Me devuelve la ip del que hace la solicitud
-  
+
   next(); //funcion necesaria para indicar que se ejecute la siguiente funcion. Osea el endpoint segun si hicimos un get, post , etc
 });
 
@@ -35,15 +36,15 @@ dataRouter.get("/", async (req, res) => {
   if (!req.query.StartDate || !req.query.EndDate) {
     res.sendStatus(400);
   } else {
-    //"2023-1-3-16-24-25"
+    console.log(req.query.Floor);
     let month = req.query.Month;
     if (month === '0') {
       console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n`);
-      findInDataBase(res, req, month, 'all');
+      findInDataBase(res, req, month, req.query.Floor, 'all');
 
     } else {
       console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n `);
-      findInDataBase(res, req, month, 'month');
+      findInDataBase(res, req, month, req.query.Floor, 'month');
     }
 
 
@@ -56,12 +57,13 @@ export default dataRouter;
  * @param {Request} res 
  * @param {Request} req 
  * @param {number} month 
+ * @param {number} floor
  * @param {String} option 
  * Look for data in the Database base on option parameter. 
  * * 'all' Look for data between two dates
  * * 'month' Look for information in a specific month
  */
-const findInDataBase = (res, req, month, option) => {
+const findInDataBase = (res, req, month, floor, option) => {
   let response = {
     meassure: [],
     max: 0,
@@ -70,37 +72,68 @@ const findInDataBase = (res, req, month, option) => {
   };
   const startDate = convertToISO(req.query.StartDate)//new Date( req.query.StartDate);
   const endDate = convertToISO(req.query.EndDate)//new Date(req.query.EndDate);
+
   if (option === 'all') {
+    if (floor === '1') {
 
-    dataModel.find({
-
-      //startDate: {$gte: startDate}, endDate: {$lte: endDate}
-      $and:
-        [
-          { date: { $gte: startDate } },
-          { date: { $lte: endDate } }
-        ]
-    },
-      (err, measurements) => {
-        response = getResponse(measurements, response);
-        res.send(response);
-      }
-    );
+      dataModel.find({
+        $and:
+          [
+            { date: { $gte: startDate } },
+            { date: { $lte: endDate } }
+          ]
+      },
+        (err, measurements) => {
+          response = getResponse(measurements, response);
+          res.send(response);
+        }
+      );
+    } else {
+      secondFloorModel.find({
+        $and:
+          [
+            { date: { $gte: startDate } },
+            { date: { $lte: endDate } }
+          ]
+      },
+        (err, measurements) => {
+          response = getResponse(measurements, response);
+          res.send(response);
+        }
+      );
+    }
   }
+
   else if (option === 'month') {
     let maxDay = setMaxDay(month);
-    dataModel.find({
-      $and:
-        [
-          { date: { $gte: convertToISO(`2023-${month}-1-0-0-0`) } },
-          { date: { $lte: convertToISO(`2023-${month}-${maxDay}-0-0-0`) } }
-        ]
-    },
-      (err, measurements) => {
-        response = getResponse(measurements, response);
-        res.send(response);
-      }
-    );
+    if (floor === '1') {
+
+      dataModel.find({
+        $and:
+          [
+            { date: { $gte: convertToISO(`2023-${month}-1-0-0-0`) } },
+            { date: { $lte: convertToISO(`2023-${month}-${maxDay}-0-0-0`) } }
+          ]
+      },
+        (err, measurements) => {
+          response = getResponse(measurements, response);
+          res.send(response);
+        }
+      );
+    } else {
+      secondFloorModel.find({
+        $and:
+          [
+            { date: { $gte: convertToISO(`2023-${month}-1-0-0-0`) } },
+            { date: { $lte: convertToISO(`2023-${month}-${maxDay}-0-0-0`) } }
+          ]
+      },
+        (err, measurements) => {
+          response = getResponse(measurements, response);
+          res.send(response);
+        }
+      );
+    }
   }
 }
 
@@ -173,16 +206,14 @@ const getResponse = (measurements, response) => {
 }
 
 const setMaxDay = (month) => {
-  if(month===1||month===3||month===4||month===6||month===7||month===8||month===10||month===3||month===12)
-  {
-   
-    return(31);
+  if (month === 1 || month === 3 || month === 4 || month === 6 || month === 7 || month === 8 || month === 10 || month === 3 || month === 12) {
+
+    return (31);
   }
-  if(month===2)
-  {
-    return(28)
+  if (month === 2) {
+    return (28)
   }
-  else{
-    return(30);
+  else {
+    return (30);
   }
 }
