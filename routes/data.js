@@ -5,7 +5,7 @@ import dataModel from "../schema/data-schema.js";
 import secondFloorModel from "../schema/secondSchema.js"
 import { convertToISO } from "../utils/ISODate.js";
 
-var aux1 = 0, aux2 = 0, max = 0.0, sum = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sumThd = 0, sumEkwh = 0;
+var aux1 = 0, aux2 = 0, max = 0.0, sum = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sumThd = 0, sumEkwh = 0, sumPower = 0;
 let count = 0;
 const dataRouter = Router();
 
@@ -157,6 +157,8 @@ const getMaxValue = (dato) => {
   sum7 += harmonic7;
   let thd = parseFloat(dato.meassure.split(',')[12]);
   sumThd += thd;
+  let power = parseFloat(dato.meassure.split(',')[13]);
+  sumPower += power;
   let Ekwh = parseFloat(dato.meassure.split(',')[14]);
   sumEkwh += Ekwh;
   if (aux1 >= max) {
@@ -177,8 +179,8 @@ const getResponse = (measurements, response) => {
   let averageHarmonic6 = sum6 / count;
   let averageHarmonic7 = sum7 / count;
   let averageThd = sumThd / count;
+  let averagePower = sumPower /count;
   let averageEkwh = sumEkwh / count;
-
   sum = 0;
   sum2 = 0;
   sum3 = 0;
@@ -187,21 +189,36 @@ const getResponse = (measurements, response) => {
   sum6 = 0;
   sum7 = 0;
   sumThd = 0;
+  sumPower = 0;
   sumEkwh = 0;
   count = 0;
   aux2 = 0;
+  
+  const S = 250 * average;
+  const Q = S * averageThd;
+  const cos_phi = Math.sqrt(Math.pow(S, 2) - Math.pow(Q, 2)) / S;
+  
+  console.log("Potencia aparente: " + S + " VA");
+  console.log("Potencia reactiva: " + Q + " VAr");
+  console.log("Coseno phi: " + cos_phi);
+  console.log(average);
+
   response.meassure = measurements;
   response.max = max;
   response.average = average;
-  response.harmonics.push(averageHarmonic);
-  response.harmonics.push(averageHarmonic2);
-  response.harmonics.push(averageHarmonic3);
-  response.harmonics.push(averageHarmonic4);
-  response.harmonics.push(averageHarmonic5);
-  response.harmonics.push(averageHarmonic6);
-  response.harmonics.push(averageHarmonic7);
-  response.harmonics.push(averageThd);
-  response.harmonics.push(averageEkwh);
+  response.harmonics.push(averageHarmonic);//0
+  response.harmonics.push(averageHarmonic2);//1
+  response.harmonics.push(averageHarmonic3);//2
+  response.harmonics.push(averageHarmonic4);//3
+  response.harmonics.push(averageHarmonic5);//4
+  response.harmonics.push(averageHarmonic6);//5
+  response.harmonics.push(averageHarmonic7);//6
+  response.harmonics.push(averageThd);//7
+  response.harmonics.push(averageEkwh);//8
+  response.harmonics.push(averagePower);//9
+  response.harmonics.push(cos_phi);//10
+  response.harmonics.push(Q);//11
+
   return (response);
 }
 
