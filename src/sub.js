@@ -60,7 +60,7 @@ const parseFrame = (message) => {
      meassure.forEach((element,index) => {
         console.log(`${index} : ${element}`);
     });
-    let frameR = meassure.slice(0, 14).join(",");
+    let frameR = meassure.slice(0, 15).join(",");
     let frameS = meassure.slice(15, 30).join(",");
     
     /*concateno las el dia y la hora con un "-" */
