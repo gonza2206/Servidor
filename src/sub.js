@@ -58,7 +58,7 @@ const parseFrame = (message) => {
     let meassure = message.split(',');
     /*Divido el mensaje entrante en las dos tramas correspondientes */
     let frameR = meassure.slice(0, 14).join(",");
-    let frameS = meassure.slice(15, 29).join(",");
+    let frameS = meassure.slice(15, 30).join(",");
 
     /*concateno las el dia y la hora con un "-" */
     meassure[31] = '-' + meassure[31];
