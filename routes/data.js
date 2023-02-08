@@ -3,6 +3,7 @@ import { parse } from "dotenv";
 import { Router } from "express";
 import dataModel from "../schema/data-schema.js";
 import secondFloorModel from "../schema/secondSchema.js"
+import data from "../src/data.js";
 import { convertToISO } from "../utils/ISODate.js";
 
 var aux1 = 0, aux2 = 0, max = 0.0, sum = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sumThd = 0, sumEkwh = 0, sumPower = 0;
@@ -33,6 +34,45 @@ dataRouter.use(
 );
 
 dataRouter.get("/", async (req, res) => {
+  let energyAccumulated = 0;
+
+  const parsedData = data.map((value, index) => {
+    const splittedValue = value.split(";");
+    const date = new Date(Date.parse(splittedValue[0].replace( /(\d{2})\/(\d{2})\/(\d{4})/, "$2/$1/$3"))).toISOString();
+    const PA = parseFloat(splittedValue[2]);
+    const Vrms = parseFloat(splittedValue[4]);
+    const Irms = parseFloat(splittedValue[5]);
+    const Ipk = Irms * 1.414;
+    const S = parseFloat(splittedValue[3]);
+    const cosphi = PA / Math.sqrt(PA ** 2 + S ** 2);
+    const THD = (Math.random() * (5 - 3) + 3).toFixed(2);
+    const h1 = Irms * 0.2;
+    const h2 = Irms * 0.1;
+    const h3 = Irms * 0.05;
+    const h4 = Irms * 0.03;
+    const h5 = Irms * 0.02;
+    const h6 = Irms * 0.01;
+    const h7 = Irms * 0.005;
+
+    // Agregar cálculo de energía acumulada
+    let energyAccumulated = 0;
+    if (index > 0) {
+      const previousValue = data[index - 1].split(";");
+      const previousPA = parseFloat(previousValue[2]);
+      const previousVrms = parseFloat(previousValue[4]);
+      const previousIrms = parseFloat(previousValue[5]);
+      const previousCosphi = previousPA / Math.sqrt(previousPA ** 2 + S ** 2);
+      const previousTime = new Date(previousValue[0] + " " + previousValue[1]).getTime();
+      const currentTime = new Date(splittedValue[0] + " " + splittedValue[1]).getTime();
+      const timeDifference = (currentTime - previousTime) / 1000; // Segundos
+      energyAccumulated += previousIrms * previousVrms * previousCosphi * timeDifference;
+    }
+
+    return `${PA};${Vrms};${Irms};${Ipk};${cosphi};${THD};${h1};${h2};${h3};${h4};${h5};${h6};${h7};${energyAccumulated}`;
+  });
+
+  // const parsedData = parseData(data);
+  console.log(parsedData);
   if (!req.query.StartDate || !req.query.EndDate) {
     res.sendStatus(400);
   } else {
@@ -179,7 +219,7 @@ const getResponse = (measurements, response) => {
   let averageHarmonic6 = sum6 / count;
   let averageHarmonic7 = sum7 / count;
   let averageThd = sumThd / count;
-  let averagePower = sumPower /count;
+  let averagePower = sumPower / count;
   let averageEkwh = sumEkwh / count;
   sum = 0;
   sum2 = 0;
@@ -193,11 +233,11 @@ const getResponse = (measurements, response) => {
   sumEkwh = 0;
   count = 0;
   aux2 = 0;
-  
+
   const S = 250 * average;
   const Q = S * averageThd;
   const cos_phi = Math.sqrt(Math.pow(S, 2) - Math.pow(Q, 2)) / S;
-  
+
   console.log("Potencia aparente: " + S + " VA");
   console.log("Potencia reactiva: " + Q + " VAr");
   console.log("Coseno phi: " + cos_phi);
