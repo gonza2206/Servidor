@@ -11,15 +11,13 @@ let count = 0;
 const dataRouter = Router();
 
 dataRouter.use((req, res, next) => {
-  console.log(req.ip); //Me devuelve la ip del que hace la solicitud
+  //console.log(req.ip); //Me devuelve la ip del que hace la solicitud
 
   next(); //funcion necesaria para indicar que se ejecute la siguiente funcion. Osea el endpoint segun si hicimos un get, post , etc
 });
 
 dataRouter.post("/", async (req, res) => {
   var auxiliar = req.body;
-
-  console.log(auxiliar);
 
   return res.send("Data receive");
 });
@@ -33,12 +31,14 @@ dataRouter.use(
   })
 );
 
+
+
 dataRouter.get("/", async (req, res) => {
   let energyAccumulated = 0;
 
   const parsedData = data.map((value, index) => {
     const splittedValue = value.split(";");
-    const date = new Date(Date.parse(splittedValue[0].replace( /(\d{2})\/(\d{2})\/(\d{4})/, "$2/$1/$3"))).toISOString();
+    const date = new Date(Date.parse(splittedValue[0].replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$2/$1/$3"))).toISOString();
     const PA = parseFloat(splittedValue[2]);
     const Vrms = parseFloat(splittedValue[4]);
     const Irms = parseFloat(splittedValue[5]);
@@ -53,22 +53,8 @@ dataRouter.get("/", async (req, res) => {
     const h5 = Irms * 0.02;
     const h6 = Irms * 0.01;
     const h7 = Irms * 0.005;
-
-    // Agregar cálculo de energía acumulada
-    let energyAccumulated = 0;
-    if (index > 0) {
-      const previousValue = data[index - 1].split(";");
-      const previousPA = parseFloat(previousValue[2]);
-      const previousVrms = parseFloat(previousValue[4]);
-      const previousIrms = parseFloat(previousValue[5]);
-      const previousCosphi = previousPA / Math.sqrt(previousPA ** 2 + S ** 2);
-      const previousTime = new Date(previousValue[0] + " " + previousValue[1]).getTime();
-      const currentTime = new Date(splittedValue[0] + " " + splittedValue[1]).getTime();
-      const timeDifference = (currentTime - previousTime) / 1000; // Segundos
-      energyAccumulated += previousIrms * previousVrms * previousCosphi * timeDifference;
-    }
-
-    return `${PA};${Vrms};${Irms};${Ipk};${cosphi};${THD};${h1};${h2};${h3};${h4};${h5};${h6};${h7};${energyAccumulated}`;
+    const Energy = (PA *1000)/60;
+    return `s,${Vrms},${Irms},${Ipk},${Ipk},${h1},${h2},${h3},${h4},${h5},${h6},${h7},${THD},${PA},${Energy},${date}`;
   });
 
   // const parsedData = parseData(data);
@@ -76,18 +62,15 @@ dataRouter.get("/", async (req, res) => {
   if (!req.query.StartDate || !req.query.EndDate) {
     res.sendStatus(400);
   } else {
-    console.log(req.query.Floor);
     let month = req.query.Month;
     if (month === '0') {
-      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n`);
+      //console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n`);
       findInDataBase(res, req, month, req.query.Floor, 'all');
 
     } else {
-      console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n `);
+      //console.log(`StarDate: ${req.query.StartDate} \nendDate ${req.query.EndDate} \nMonth: ${req.query.Month} \n `);
       findInDataBase(res, req, month, req.query.Floor, 'month');
     }
-
-
   }
 });
 
@@ -238,10 +221,10 @@ const getResponse = (measurements, response) => {
   const Q = S * averageThd;
   const cos_phi = Math.sqrt(Math.pow(S, 2) - Math.pow(Q, 2)) / S;
 
-  console.log("Potencia aparente: " + S + " VA");
-  console.log("Potencia reactiva: " + Q + " VAr");
-  console.log("Coseno phi: " + cos_phi);
-  console.log(average);
+  // console.log("Potencia aparente: " + S + " VA");
+  // console.log("Potencia reactiva: " + Q + " VAr");
+  // console.log("Coseno phi: " + cos_phi);
+  // console.log(average);
 
   response.meassure = measurements;
   response.max = max;
@@ -257,7 +240,7 @@ const getResponse = (measurements, response) => {
   response.harmonics.push(averageEkwh);//8
   response.harmonics.push(averagePower);//9
   response.harmonics.push(cos_phi);//10
-  response.harmonics.push(Q);//11
+  response.harmonics.push(Q);//11 Var
 
   return (response);
 }
