@@ -34,31 +34,7 @@ dataRouter.use(
 
 
 dataRouter.get("/", async (req, res) => {
-  let energyAccumulated = 0;
 
-  const parsedData = data.map((value, index) => {
-    const splittedValue = value.split(";");
-    const date = new Date(Date.parse(splittedValue[0].replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$2/$1/$3"))).toISOString();
-    const PA = parseFloat(splittedValue[2]);
-    const Vrms = parseFloat(splittedValue[4]);
-    const Irms = parseFloat(splittedValue[5]);
-    const Ipk = Irms * 1.414;
-    const S = parseFloat(splittedValue[3]);
-    const cosphi = PA / Math.sqrt(PA ** 2 + S ** 2);
-    const THD = (Math.random() * (5 - 3) + 3).toFixed(2);
-    const h1 = Irms * 0.2;
-    const h2 = Irms * 0.1;
-    const h3 = Irms * 0.05;
-    const h4 = Irms * 0.03;
-    const h5 = Irms * 0.02;
-    const h6 = Irms * 0.01;
-    const h7 = Irms * 0.005;
-    const Energy = (PA *1000)/60;
-    return `s,${Vrms},${Irms},${Ipk},${Ipk},${h1},${h2},${h3},${h4},${h5},${h6},${h7},${THD},${PA},${Energy},${date}`;
-  });
-
-  // const parsedData = parseData(data);
-  console.log(parsedData);
   if (!req.query.StartDate || !req.query.EndDate) {
     res.sendStatus(400);
   } else {
@@ -108,6 +84,7 @@ const findInDataBase = (res, req, month, floor, option) => {
       },
         (err, measurements) => {
           response = getResponse(measurements, response);
+          console.log(response);
           res.send(response);
         }
       );
@@ -257,3 +234,4 @@ const setMaxDay = (month) => {
     return (30);
   }
 }
+
